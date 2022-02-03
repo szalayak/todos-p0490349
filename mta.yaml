@@ -1,0 +1,72 @@
+_schema-version: '3.2'
+ID: todos_p049039
+version: 0.0.1
+
+parameters:
+  enable-parallel-deployments: true
+
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm install --production
+        - npx -p @sap/cds-dk cds build --production
+#        - npx rimraf gen/db/src/gen/data # uncomment this line to prevent loading of initial data which is only relevant for dev/test deployments 
+#        - npx rimraf gen/db/src/gen/csv  # uncomment this line unless db/csv folder has been used for config/control table data which is entirely managed by the developer and never changed by the app
+
+modules:
+  # ---------------- DATABASE DEPLOYER MODULE ------------------
+  - name: todos_p049039-db-deployer
+  # ------------------------------------------------------------
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+      memory: 256M
+      disk-quota: 1024M
+    requires:
+      - name: todos_p049039-db
+
+  # --------------------- SERVER MODULE ------------------------
+  - name: todos_p049039-srv
+  # ------------------------------------------------------------
+    type: nodejs
+    path: gen/srv
+    parameters:
+      buildpack: nodejs_buildpack
+      memory: 512M
+      disk-quota: 1024M
+    requires:
+      - name: todos_p049039-db
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    properties:
+        CORS:
+          - uriPattern: .
+            allowedMethods:
+              - GET
+              - POST
+            allowedOrigin:
+              - host: '*'          
+
+resources:
+
+
+
+
+  # ------------------- HDI CONTAINER SERVICE ------------------
+  - name: todos_p049039-db
+  # ------------------------------------------------------------
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hanatrial
+      service-plan: hdi-shared
+    properties:
+      hdi-service-name: ${service-name}
+
+
+
+
+
