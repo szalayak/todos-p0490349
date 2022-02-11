@@ -41,15 +41,23 @@ modules:
     provides:
       - name: srv-api
         properties:
-          srv-url: ${default-url}
-    properties:
-        CORS:
-          - uriPattern: .
-            allowedMethods:
-              - GET
-              - POST
-            allowedOrigin:
-              - host: '*'          
+          srv-url: ${default-url}       
+
+  # ------------------ APP ROUTER MODULE -----------------------
+  - name: todos_p049039
+  # ------------------------------------------------------------
+    type: approuter.nodejs
+    path: app
+    parameters:
+      memory: 256M
+      disk-quota: 1024M
+    requires:
+      - name: srv-api
+        group: destinations
+        properties:
+          name: srv
+          url: ~{srv-url}
+          timeout: 60000
 
 resources:
 
